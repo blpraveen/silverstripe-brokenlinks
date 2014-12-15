@@ -1,6 +1,6 @@
 <?php
 
-class CMSExternalLinks_Controller extends Controller {
+class CMSBrokenLinks extends Controller {
 
 	private static $allowed_actions = array('getJobStatus', 'start');
 
@@ -34,20 +34,20 @@ class CMSExternalLinks_Controller extends Controller {
 	 */
 	public function start() {
 		// return if the a job is already running
-		$status = BrokenExternalPageTrackStatus::get_latest();
+		$status = BrokenLinkPageTrackStatus::get_latest();
 		if ($status && $status->Status == 'Running') return;
 
 		// Create a new job
 		if (class_exists('QueuedJobService')) {
 			// Force the creation of a new run
-			BrokenExternalPageTrackStatus::create_status();
-			$checkLinks = new CheckExternalLinksJob();
+			BrokenLinkPageTrackStatus::create_status();
+			$checkLinks = new CheckLinksJob();
 			singleton('QueuedJobService')->queueJob($checkLinks);
 		} else {
 			//TODO this hangs as it waits for the connection to be released
 			// should return back and continue processing
 			// http://us3.php.net/manual/en/features.connection-handling.php
-			$task = CheckExternalLinksTask::create();
+			$task = CheckLinksTask::create();
 			$task->runLinksCheck();
 		}
 	}
