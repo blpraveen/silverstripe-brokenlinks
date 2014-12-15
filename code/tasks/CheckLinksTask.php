@@ -1,6 +1,6 @@
 <?php
 
-class CheckExternalLinksTask extends BuildTask {
+class CheckLinksTask extends BuildTask {
 
 	private static $dependencies = array(
 		'LinkChecker' => '%$LinkChecker'
@@ -16,9 +16,9 @@ class CheckExternalLinksTask extends BuildTask {
 	 */
 	protected $linkChecker;
 
-	protected $title = 'Checking broken External links in the SiteTree';
+	protected $title = 'Checking broken  links in the SiteTree';
 
-	protected $description = 'A task that records external broken links in the SiteTree';
+	protected $description = 'A task that records  broken links in the SiteTree';
 
 	protected $enabled = true;
 
@@ -60,13 +60,14 @@ class CheckExternalLinksTask extends BuildTask {
 	/**
 	 * Check the status of a single link on a page
 	 *
-	 * @param BrokenExternalPageTrack $pageTrack
+	 * @param BrokenLinkPageTrack $pageTrack
 	 * @param DOMNode $link
 	 */
-	protected function checkPageLink(BrokenExternalPageTrack $pageTrack, DOMNode $link) {
+	protected function checkPageLink(BrokenLinkPageTrack $pageTrack, DOMNode $link) {
 		$class = $link->getAttribute('class');
 		$href = $link->getAttribute('href');
 		$markedBroken = preg_match('/\b(ss-broken)\b/', $class);
+		$text = $link->nodeValue;
 
 		// Check link
 		$httpCode = $this->linkChecker->checkLink($href);
@@ -75,8 +76,9 @@ class CheckExternalLinksTask extends BuildTask {
 		// If this code is broken then mark as such
 		if($foundBroken = $this->isCodeBroken($httpCode)) {
 			// Create broken record
-			$brokenLink = new BrokenExternalLink();
+			$brokenLink = new BrokenLink();
 			$brokenLink->Link = $href;
+			$brokenLink->Text = $text;
 			$brokenLink->HTTPCode = $httpCode;
 			$brokenLink->TrackID = $pageTrack->ID;
 			$brokenLink->StatusID = $pageTrack->StatusID; // Slight denormalisation here for performance reasons
@@ -104,7 +106,7 @@ class CheckExternalLinksTask extends BuildTask {
 		if($httpCode === null) return false;
 
 		// do we have any whitelisted codes
-		$ignoreCodes = Config::inst()->get('CheckExternalLinks', 'IgnoreCodes');
+		$ignoreCodes = Config::inst()->get('CheckLinks', 'IgnoreCodes');
 		if(is_array($ignoreCodes) && in_array($httpCode, $ignoreCodes)) return false;
 
 		// Check if code is outside valid range
@@ -115,11 +117,11 @@ class CheckExternalLinksTask extends BuildTask {
 	 * Runs the links checker and returns the track used
 	 *
 	 * @param int $limit Limit to number of pages to run, or null to run all
-	 * @return BrokenExternalPageTrackStatus
+	 * @return BrokenLinkPageTrackStatus
 	 */
 	public function runLinksCheck($limit = null) {
 		// Check the current status
-		$status = BrokenExternalPageTrackStatus::get_or_create();
+		$status = BrokenLinkPageTrackStatus::get_or_create();
 
 		// Calculate pages to run
 		$pageTracks = $status->getIncompleteTracks();
@@ -129,7 +131,13 @@ class CheckExternalLinksTask extends BuildTask {
 		foreach ($pageTracks as $pageTrack) {
 			// Flag as complete
 			$pageTrack->Processed = 1;
-			$pageTrack->write();
+			try{
+				$pageTrack->write();
+			} catch(ValidationException $e)  {
+				$this->log("Error PageID:{$pageTrack->ID} Message:: {$e->getResult()->message()}");
+			} catch(Exception $e)  {
+				$this->log("Error PageID:{$pageTrack->ID} Message:: {$e->message}");
+			} 
 
 			// Check value of html area
 			$page = $pageTrack->Page();
@@ -144,10 +152,16 @@ class CheckExternalLinksTask extends BuildTask {
 			}
 
 			// Update content of page based on link fixes / breakages
-			$htmlValue->saveHTML();
+			/*$htmlValue->saveHTML();
 			$page->Content = $htmlValue->getContent();
-			$page->write();
-
+			try{
+				$page->write();
+			} catch(ValidationException $e)  {
+				$this->log("Error PageID:{$page->ID} Message:: {$e->getResult()->message()}");
+			} catch(Exception $e)  {
+				$this->log("Error PageID:{$page->ID} Message:: {$e->message}");
+			}
+			*/
 			// Once all links have been created for this page update HasBrokenLinks
 			$count = $pageTrack->BrokenLinks()->count();
 			$this->log("Found {$count} broken links");
@@ -166,20 +180,20 @@ class CheckExternalLinksTask extends BuildTask {
 	}
 
 	private function updateCompletedPages($trackID = 0) {
-		$noPages = BrokenExternalPageTrack::get()
+		$noPages = BrokenLinkPageTrack::get()
 			->filter(array(
 				'TrackID' => $trackID,
 				'Processed' => 1
 			))
 			->count();
-		$track = BrokenExternalPageTrackStatus::get_latest();
+		$track = BrokenLinkPageTrackStatus::get_latest();
 		$track->CompletedPages = $noPages;
 		$track->write();
 		return $noPages;
 	}
 
 	private function updateJobInfo($message) {
-		$track = BrokenExternalPageTrackStatus::get_latest();
+		$track = BrokenLinkPageTrackStatus::get_latest();
 		if($track) {
 			$track->JobInfo = $message;
 			$track->write();
