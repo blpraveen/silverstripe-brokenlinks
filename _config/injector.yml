@@ -1,5 +1,5 @@
 ---
-Name: externallinksdependencies
+Name: brokenlinksdependencies
 ---
 Injector:
   LinkChecker: CurlLinkChecker
