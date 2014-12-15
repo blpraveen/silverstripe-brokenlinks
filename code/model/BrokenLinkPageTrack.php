@@ -3,7 +3,7 @@
 /**
  * Represents a track for a single page
  */
-class BrokenExternalPageTrack extends DataObject {
+class BrokenLinkPageTrack extends DataObject {
 
 	private static $db = array(
 		'Processed' => 'Boolean'
@@ -11,11 +11,11 @@ class BrokenExternalPageTrack extends DataObject {
 
 	private static $has_one = array(
 		'Page' => 'SiteTree',
-		'Status' => 'BrokenExternalPageTrackStatus'
+		'Status' => 'BrokenLinkPageTrackStatus'
 	);
 
 	private static $has_many = array(
-		'BrokenLinks' => 'BrokenExternalLink'
+		'BrokenLinks' => 'BrokenLink'
 	);
 
 	/**
