@@ -3,10 +3,10 @@
 /**
  * Represents a single link checked for a single run that is broken
  *
- * @method BrokenExternalPageTrack Track()
- * @method BrokenExternalPageTrackStatus Status()
+ * @method BrokenLinkPageTrack Track()
+ * @method BrokenLinkPageTrackStatus Status()
  */
-class BrokenExternalLink extends DataObject {
+class BrokenLink extends DataObject {
 
 	private static $db = array(
 		'Link' => 'Varchar(2083)', // 2083 is the maximum length of a URL in Internet Explorer.
@@ -15,13 +15,13 @@ class BrokenExternalLink extends DataObject {
 	);
 
 	private static $has_one = array(
-		'Track' => 'BrokenExternalPageTrack',
-		'Status' => 'BrokenExternalPageTrackStatus'
+		'Track' => 'BrokenLinkPageTrack',
+		'Status' => 'BrokenLinkPageTrackStatus'
 	);
 
 	private static $summary_fields = array(
 		'Created' => 'Checked',
-		'Link' => 'External Link',
+		'Link' => 'Link',
 		'HTTPCodeDescription' => 'HTTP Error Code',
 		'Page.Title' => 'Page link is on'
 	);
@@ -56,14 +56,14 @@ class BrokenExternalLink extends DataObject {
 		$code = $this->HTTPCode;
 		if(empty($code)) {
 			// Assume that $code = 0 means there was no response
-			$description = _t('BrokenExternalLink.NOTAVAILABLE', 'Server Not Available');
+			$description = _t(__CLASS__.'.NOTAVAILABLE', 'Server Not Available');
 		} elseif(
 			($descriptions = Config::inst()->get('SS_HTTPResponse', 'status_codes'))
 			&& isset($descriptions[$code])
 		) {
 			$description = $descriptions[$code];
 		} else {
-			$description = _t('BrokenExternalLink.UNKNOWNRESPONSE', 'Unknown Response Code');
+			$description = _t(_CLASS__.'.UNKNOWNRESPONSE', 'Unknown Response Code');
 		}
 		return sprintf("%d (%s)", $code, $description);
 	}
