@@ -6,10 +6,10 @@ if(!class_exists('AbstractQueuedJob')) return;
  * A Job for running a external link check for published pages
  *
  */
-class CheckExternalLinksJob extends AbstractQueuedJob implements QueuedJob {
+class CheckLinksJob extends AbstractQueuedJob implements QueuedJob {
 
 	public function getTitle() {
-		return _t('CheckExternalLiksJob.TITLE', 'Checking for external broken links');
+		return _t('CheckLinksJob.TITLE', 'Checking for  broken links');
 	}
 
 	public function getJobType() {
@@ -24,7 +24,7 @@ class CheckExternalLinksJob extends AbstractQueuedJob implements QueuedJob {
 	 * Check an individual page
 	 */
 	public function process() {
-		$task = CheckExternalLinksTask::create();
+		$task = CheckLinksTask::create();
 		$track = $task->runLinksCheck(1);
 		$this->currentStep = $track->CompletedPages;
 		$this->totalSteps = $track->TotalPages;
