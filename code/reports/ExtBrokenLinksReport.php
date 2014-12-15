@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Content side-report listing pages with external broken links
- * @package externallinks
+ * Content side-report listing pages with broken links
+ * @package brokenlinks
  * @subpackage content
  */
 
-class BrokenExternalLinksReport extends SS_Report {
+class ExtBrokenLinksReport extends SS_Report {
 
 	/**
 	 * Returns the report title
@@ -14,19 +14,19 @@ class BrokenExternalLinksReport extends SS_Report {
 	 * @return string
 	 */
 	public function title() {
-		return _t('ExternalBrokenLinksReport.EXTERNALBROKENLINKS', "External broken links report");
+		return _t('ExtBrokenLinksReport.BROKENLINKS', "Extended broken links report");
 	}
 
 	public function columns() {
 		return array(
 			"Created" => "Checked",
 			'Link' => array(
-				'title' => 'External Link',
+				'title' => 'Link',
 				'formatting' => function($value, $item) {
 					return sprintf(
 						'<a target="_blank" href="%s">%s</a>',
 						Convert::raw2att($item->Link),
-						Convert::raw2xml($item->Link)
+						Convert::raw2xml($item->Text)
 					);
 				}
 			),
@@ -55,25 +55,25 @@ class BrokenExternalLinksReport extends SS_Report {
 	}
 
 	public function sourceRecords() {
-		$track = BrokenExternalPageTrackStatus::get_latest();
+		$track = BrokenLinkPageTrackStatus::get_latest();
 		if ($track) return $track->BrokenLinks();
 		return new ArrayList();
 	}
 
 	public function getCMSFields() {
-		Requirements::javascript('externallinks/javascript/BrokenExternalLinksReport.js');
+		Requirements::javascript('brokenlinks/javascript/BrokenLinksReport.js');
 		$fields = parent::getCMSFields();
 
 		$reportResultSpan = '</ br></ br><h3 id="ReportHolder"></h3>';
 		$reportResult = new LiteralField('ResultTitle', $reportResultSpan);
 		$fields->push($reportResult);
 
-		$button = '<button id="externalLinksReport" type="button">%s</button>';
+		$button = '<button id="LinksReport" type="button">%s</button>';
 		$runReportButton = new LiteralField(
 			'runReport',
 			sprintf(
 				$button,
-				_t('ExternalBrokenLinksReport.RUNREPORT', 'Create new report')
+				_t('ExtBrokenLinksReport.RUNREPORT', 'Create new report')
 			)
 		);
 		$fields->push($runReportButton);
