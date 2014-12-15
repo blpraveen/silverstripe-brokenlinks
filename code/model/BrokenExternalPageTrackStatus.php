@@ -8,7 +8,7 @@
  * @property int $TotalPages Get total pages count
  * @property int $CompletedPages Get completed pages count
  */
-class BrokenExternalPageTrackStatus extends DataObject {
+class BrokenLinkPageTrackStatus extends DataObject {
 
 	private static $db = array(
 		'Status' => 'Enum("Completed, Running", "Running")',
@@ -16,10 +16,11 @@ class BrokenExternalPageTrackStatus extends DataObject {
 	);
 
 	private static $has_many = array(
-		'TrackedPages' => 'BrokenExternalPageTrack',
-		'BrokenLinks' => 'BrokenExternalLink'
+		'TrackedPages' => 'BrokenLinkPageTrack',
+		'BrokenLinks' => 'BrokenLink'
 	);
-
+	private static $exclude_pages = array(
+	);
 	/**
 	 * Get the latest track status
 	 *
@@ -45,7 +46,7 @@ class BrokenExternalPageTrackStatus extends DataObject {
 	}
 
 	/**
-	 * Get the list of incomplete BrokenExternalPageTrack
+	 * Get the list of incomplete BrokenLinkPageTrack
 	 *
 	 * @return DataList
 	 */
@@ -100,9 +101,10 @@ class BrokenExternalPageTrackStatus extends DataObject {
 
 		// Setup all pages to test
 		$pageIDs = Versioned::get_by_stage('SiteTree', 'Stage')
+			->exclude('ClassName' , array_values(Config::inst()->get('BrokenLinkPageTrackStatus', 'exclude_pages')))	
 			->column('ID');
 		foreach ($pageIDs as $pageID) {
-			$trackPage = BrokenExternalPageTrack::create();
+			$trackPage = BrokenLinkPageTrack::create();
 			$trackPage->PageID = $pageID;
 			$trackPage->StatusID = $status->ID;
 			$trackPage->write();
