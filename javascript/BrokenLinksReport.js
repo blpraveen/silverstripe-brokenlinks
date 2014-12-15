@@ -1,13 +1,13 @@
 (function($) {
 	$.entwine('ss', function($) {
-		$('#externalLinksReport').entwine({
+		$('#LinksReport').entwine({
 			PollTimeout: null,
 			onclick: function() {
 				this.start();
 			},
 			onmatch: function() {
 				// poll the current job and update the front end status
-				$('#externalLinksReport').hide();
+				$('#LinksReport').hide();
 				this.poll();
 			},
 			start: function() {
@@ -15,20 +15,20 @@
 				$('#ReportHolder').empty();
 				$('#ReportHolder').text('Running report 0%');
 				$('#ReportHolder').append('<span class="ss-ui-loading-icon"></span>');
-				$('#externalLinksReport').hide();
-				$.ajax({url: "admin/externallinks/start", async: false, timeout: 3000 });
+				$('#LinksReport').hide();
+				$.ajax({url: "admin/brokenlinks/start", async: false, timeout: 3000 });
 				this.poll();
 			},
 			poll: function() {
 				var self = this;
 
 				$.ajax({
-					url: "admin/externallinks/getJobStatus",
+					url: "admin/brokenlinks/getJobStatus",
 					async: true,
 					success: function(data) {
 						// No report, so let user create one
 						if (!data) {
-							$('#externalLinksReport').show();
+							$('#LinksReport').show();
 							return;
 						}
 
@@ -39,7 +39,7 @@
 						// If complete status
 						if (data.Status === 'Completed') {
 							$('#ReportHolder').text('Report Finished ' + completed + '/' + total);
-							$('#externalLinksReport').show();
+							$('#LinksReport').show();
 							return;
 						}
 						
@@ -57,7 +57,7 @@
 							clearTimeout(self.getPollTimeout());
 						}
 
-						self.setPollTimeout(setTimeout(function() { $('#externalLinksReport').poll(); }, 1000));
+						self.setPollTimeout(setTimeout(function() { $('#LinksReport').poll(); }, 1000));
 					},
 					error: function(e) {
 						if(typeof console !== 'undefined') console.log(e);
