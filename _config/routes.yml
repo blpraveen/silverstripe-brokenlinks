@@ -1,7 +1,7 @@
 ---
-Name: externallink
+Name: brokenlink
 After: framework/routes
 ---
 Director:
   rules:
-    'admin/externallinks//$Action': 'CMSExternalLinks_Controller'
+    'admin/brokenlinks//$Action': 'CMSBrokenLinks_Controller'
