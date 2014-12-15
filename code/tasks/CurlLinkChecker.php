@@ -26,8 +26,31 @@ class CurlLinkChecker implements LinkChecker {
 	 */
 	public function checkLink($href) {
 		// Skip non-external links
-		if(!preg_match('/^https?[^:]*:\/\//', $href)) return null;
-
+		//if(!preg_match('/^https?[^:]*:\/\//', $href)) return null;
+                //Internal Links
+		$href = Director::makeRelative($href);
+		if(preg_match('/\[(sitetree|file)_link[,\s]id=([0-9]+)\]/i', $href, $matches)) {
+			$type = $matches[1];
+			$id = $matches[2];
+			if($type === 'sitetree') {
+				if(SiteTree::get()->byID($id)) {
+					return 200;
+				} else {
+					return 400;
+				}
+			} else if($type === 'file') {
+				if(File::get()->byID($id)) {
+					return 200;
+				} else {
+					return 404;
+				}
+			}
+		} 
+		$HostUrl = Director::protocolAndHost() . Director::BaseUrl();		
+		$search = '/^https?[^:]*:\/\//';	
+		if(!preg_match($search,$href )) {
+			$href  = $HostUrl. $href;
+		}		
 		// Check if we have a cached result
 		$cacheKey = md5($href);
 		$result = $this->getCache()->load($cacheKey);
